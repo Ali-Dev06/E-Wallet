@@ -1,4 +1,4 @@
-import finduserbymail, { persistDatabase, getUserByName } from "../Models/database.js";
+import finduserbymail, { SaveBD, getUserByName } from "../Models/database.js";
 
 let username = JSON.parse(sessionStorage.getItem("Currentuser"));
 
@@ -105,25 +105,19 @@ function verifierSolde(amount, callback) {
         alert("Solde insuffisant ! Votre solde est de " + username.wallet.balance + " " + username.wallet.currency);
         return;
     }
-    console.log("Etape 1 : Solde suffisant");
     callback();
 }
 
 function verifierBeneficiaire(beneficiaryName, callback) {
     if (!beneficiaryName || beneficiaryName === "") {
-        alert("Veuillez choisir un bénéficiaire !");
+        alert("Veuillez choisir un beneficiaire !");
         return;
     }
     getUserByName(beneficiaryName, function(beneficiaire) {
         if (!beneficiaire) {
-            alert("Bénéficiaire introuvable !");
+            alert("Beneficiaire introuvable !");
             return;
         }
-        if (beneficiaire.name === username.name) {
-            alert("Vous ne pouvez pas vous transférer à vous-même !");
-            return;
-        }
-        console.log("Etape 2 : Bénéficiaire trouvé → " + beneficiaire.name);
         callback(beneficiaire);
     });
 }
@@ -158,16 +152,15 @@ function creerTransactions(amount, beneficiaire, callback) {
         sender.wallet.transactions.push(newDebit);
         beneficiaire.wallet.transactions.push(newCredit);
 
-        console.log("Etape 3 : Transactions créées");
         callback(sender); 
     });
 }
 
 function updateDashboard(amount, beneficiaire, sender) { 
-    sender.wallet.balance    -= amount;
+    sender.wallet.balance -= amount;
     beneficiaire.wallet.balance += amount;
 
-    persistDatabase();
+    SaveBD();
 
     username.wallet.balance = sender.wallet.balance;
     username.wallet.transactions = sender.wallet.transactions;
@@ -180,5 +173,4 @@ function updateDashboard(amount, beneficiaire, sender) {
     Depenses.textContent = Dt.reduce(function(total, t) { return total + t.amount; }, 0) + " " + username.wallet.currency;
     Revenue.textContent  = Ct.reduce(function(total, t) { return total + t.amount; }, 0) + " " + username.wallet.currency;
 
-    console.log("Etape 4 : Dashboard mis à jour → " + sender.wallet.balance + " MAD");
 }

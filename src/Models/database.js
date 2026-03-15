@@ -1,5 +1,9 @@
 const defaultUsers = [
-    {id:"1", name:"Ali", email:"Ali@example.com", password:"1232",
+    {   
+     id:"1", 
+     name:"Ali", 
+     email:"Ali@example.com", 
+     password:"1232",
      wallet:{ balance:12457, currency:"MAD",
       cards:[
           {numcards:"124847", type:"visa",       balance:"14712", expiry:"14-08-27", vcc:"147"},
@@ -12,7 +16,11 @@ const defaultUsers = [
       ]
      }
     },
-    {id:"2", name:"Ahmed", email:"Ahmed@example.com", password:"ahmed123",
+    {
+     id:"2", 
+     name:"Ahmed", 
+     email:"Ahmed@example.com", 
+     password:"ahmed123",
      wallet:{ balance:8300, currency:"MAD",
       cards:[
           {numcards:"987651", type:"visa",       balance:"5000", expiry:"20-05-27", vcc:"321"},
@@ -25,7 +33,11 @@ const defaultUsers = [
       ]
      }
     },
-    {id:"3", name:"Khalid", email:"Khalid@example.com", password:"khalid456",
+    {
+     id:"3", 
+     name:"Khalid", 
+     email:"Khalid@example.com", 
+     password:"khalid456",
      wallet:{ balance:5200, currency:"MAD",
       cards:[
           {numcards:"456781", type:"visa",       balance:"3000", expiry:"01-11-27", vcc:"111"},
@@ -39,7 +51,11 @@ const defaultUsers = [
       ]
      }
     },
-    {id:"4", name:"Aymen", email:"Aymen@example.com", password:"aymen123",
+    {
+     id:"4", 
+     name:"Aymen", 
+     email:"Aymen@example.com", 
+     password:"aymen123",
      wallet:{ balance:20100, currency:"MAD",
       cards:[
           {numcards:"321651", type:"mastercard", balance:"15000", expiry:"30-12-28", vcc:"741"},
@@ -69,7 +85,7 @@ if (stored && Array.isArray(stored)) {
 
 const database = { users: users };
 
-export function persistDatabase() {
+export function SaveBD() {
     sessionStorage.setItem("databaseUsers", JSON.stringify(database.users));
 }
 
