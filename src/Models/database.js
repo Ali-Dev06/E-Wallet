@@ -73,7 +73,6 @@ export function persistDatabase() {
     sessionStorage.setItem("databaseUsers", JSON.stringify(database.users));
 }
 
-// ✅ Returns direct reference inside database.users
 export function getUserByName(name, callback) {
     const user = database.users.find(function(u) {
         return u.name === name;

@@ -1,9 +1,7 @@
 import finduserbymail, { persistDatabase, getUserByName } from "../Models/database.js";
 
-// ===================== DOM =====================
 let username = JSON.parse(sessionStorage.getItem("Currentuser"));
 
-// Synchroniser avec databaseUsers au chargement
 const dbUsersOnLoad = JSON.parse(sessionStorage.getItem("databaseUsers"));
 if (dbUsersOnLoad && Array.isArray(dbUsersOnLoad)) {
     const updated = dbUsersOnLoad.find(function(u) { return u.id === username.id; });
@@ -24,7 +22,6 @@ const beneficiarySelect = document.getElementById("beneficiary");
 const sourceCardSelect  = document.getElementById("sourceCard");
 const logoutBtn         = document.getElementById("logoutBtn");
 
-// ===================== AFFICHAGE =====================
 
 greetings.textContent  = username.name;
 soldedispo.textContent = username.wallet.balance + " " + username.wallet.currency;
@@ -40,7 +37,6 @@ Depenses.textContent = totalDepenses + " " + username.wallet.currency;
 
 activeCardsEl.textContent = username.wallet.cards.length;
 
-// ===================== PEUPLER LES SELECTS =====================
 
 const allUsers = JSON.parse(sessionStorage.getItem("allUsers"));
 
@@ -62,7 +58,6 @@ username.wallet.cards.forEach(function(card) {
     sourceCardSelect.appendChild(option);
 });
 
-// ===================== OUVERTURE / FERMETURE TRANSFERT =====================
 
 Trasnfer.addEventListener("click", function() {
     transfSection.classList.remove("hidden");
@@ -76,7 +71,6 @@ AnnulerrBtn.addEventListener("click", function() {
     transfSection.classList.add("hidden");
 });
 
-// ===================== DECONNEXION =====================
 
 logoutBtn.addEventListener("click", function() {
     sessionStorage.removeItem("Currentuser");
@@ -84,7 +78,6 @@ logoutBtn.addEventListener("click", function() {
     document.location.href = "login.html";
 });
 
-// ===================== LOGIQUE TRANSFERT =====================
 
 submitTransferBtn.addEventListener("click", function(e) {
     e.preventDefault();
@@ -94,8 +87,8 @@ submitTransferBtn.addEventListener("click", function(e) {
 
     verifierSolde(amount, function() {
         verifierBeneficiaire(beneficiaryName, function(beneficiaire) {
-            creerTransactions(amount, beneficiaire, function(sender) { // ✅ receive sender
-                updateDashboard(amount, beneficiaire, sender);          // ✅ pass sender
+            creerTransactions(amount, beneficiaire, function(sender) { 
+                updateDashboard(amount, beneficiaire, sender);          
                 transfSection.classList.add("hidden");
                 alert("Transfert de " + amount + " MAD effectué avec succès vers " + beneficiaire.name + " !");
             });
@@ -103,7 +96,6 @@ submitTransferBtn.addEventListener("click", function(e) {
     });
 });
 
-// ========== ETAPE 1 ==========
 function verifierSolde(amount, callback) {
     if (!amount || amount <= 0) {
         alert("Veuillez entrer un montant valide !");
@@ -117,7 +109,6 @@ function verifierSolde(amount, callback) {
     callback();
 }
 
-// ========== ETAPE 2 ==========
 function verifierBeneficiaire(beneficiaryName, callback) {
     if (!beneficiaryName || beneficiaryName === "") {
         alert("Veuillez choisir un bénéficiaire !");
@@ -137,7 +128,6 @@ function verifierBeneficiaire(beneficiaryName, callback) {
     });
 }
 
-// ========== ETAPE 3 ==========
 function creerTransactions(amount, beneficiaire, callback) {
     const now   = new Date();
     const day   = now.getDate();
@@ -145,7 +135,6 @@ function creerTransactions(amount, beneficiaire, callback) {
     const year  = String(now.getFullYear()).slice(2);
     const date  = day + "-" + month + "-" + year;
 
-    // ✅ Find sender as direct reference inside database.users
     getUserByName(username.name, function(sender) {
 
         const newDebit = {
@@ -170,20 +159,16 @@ function creerTransactions(amount, beneficiaire, callback) {
         beneficiaire.wallet.transactions.push(newCredit);
 
         console.log("Etape 3 : Transactions créées");
-        callback(sender); // ✅ pass sender to etape 4
+        callback(sender); 
     });
 }
 
-// ========== ETAPE 4 ==========
-function updateDashboard(amount, beneficiaire, sender) { // ✅ receive sender
-    // ✅ sender is a direct reference to database.users — modifying it updates database.users
+function updateDashboard(amount, beneficiaire, sender) { 
     sender.wallet.balance    -= amount;
     beneficiaire.wallet.balance += amount;
 
-    // ✅ Now persistDatabase correctly saves Ali's updated balance
     persistDatabase();
 
-    // Update username and sessionStorage for display
     username.wallet.balance = sender.wallet.balance;
     username.wallet.transactions = sender.wallet.transactions;
     sessionStorage.setItem("Currentuser", JSON.stringify(username));

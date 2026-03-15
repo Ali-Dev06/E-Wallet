@@ -17,7 +17,6 @@ submitbtn.addEventListener("click", function traitement() {
         let user = finduserbymail(mail, password);
 
         if (user) {
-            // ✅ Récupérer la version mise à jour depuis databaseUsers
             const dbUsers = JSON.parse(sessionStorage.getItem("databaseUsers"));
             if (dbUsers && Array.isArray(dbUsers)) {
                 const updated = dbUsers.find(function(u) {
