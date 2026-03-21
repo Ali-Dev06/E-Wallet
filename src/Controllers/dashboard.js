@@ -21,6 +21,7 @@ const AnnulerrBtn       = document.getElementById("cancelTransferBtn");
 const beneficiarySelect = document.getElementById("beneficiary");
 const sourceCardSelect  = document.getElementById("sourceCard");
 const logoutBtn         = document.getElementById("logoutBtn");
+const recentTransactionsList= document.getElementById("recentTransactionsList");
 
 
 greetings.textContent  = username.name;
@@ -43,12 +44,15 @@ const allUsers = JSON.parse(sessionStorage.getItem("allUsers"));
 const autresUsers = allUsers.filter(function(user) {
     return user.name !== username.name;
 });
+console.log(autresUsers);
 
 autresUsers.forEach(function(user) {
-    const option = document.createElement("option");
-    option.value = user.name;
-    option.textContent = user.name;
-    beneficiarySelect.appendChild(option);
+    user.wallet.cards.forEach(function(card) {
+        const option = document.createElement("option");
+        option.value = user.name; // set the value to the user's name
+        option.textContent =  user.name + " - " + card.type + " - " + card.numcards;
+        beneficiarySelect.appendChild(option);
+    });
 });
 
 username.wallet.cards.forEach(function(card) {
@@ -83,46 +87,57 @@ submitTransferBtn.addEventListener("click", function(e) {
     e.preventDefault();
 
     const amount = parseFloat(document.getElementById("amount").value);
-    const beneficiaryName = document.getElementById("beneficiary").value;
+    const beneficiaryName = document.getElementById("beneficiary").value;// get the beneficiary's card number from the select input
 
-    verifierSolde(amount, function() {
-        verifierBeneficiaire(beneficiaryName, function(beneficiaire) {
-            creerTransactions(amount, beneficiaire, function(sender) { 
+    verifierSolde(amount).then(function() {
+
+        return verifierBeneficiaire(beneficiaryName).then(function(beneficiaire) {
+
+            return creerTransactions(amount, beneficiaire).then(function(sender) { 
+                
                 updateDashboard(amount, beneficiaire, sender);          
                 transfSection.classList.add("hidden");
                 alert("Transfert de " + amount + " MAD effectué avec succès vers " + beneficiaire.name + " !");
             });
         });
+    }).catch(function(err){
+        alert(err);
     });
 });
 
-function verifierSolde(amount, callback) {
-    if (!amount || amount <= 0) {
-        alert("Veuillez entrer un montant valide !");
-        return;
-    }
-    if (username.wallet.balance < amount) {
-        alert("Solde insuffisant ! Votre solde est de " + username.wallet.balance + " " + username.wallet.currency);
-        return;
-    }
-    callback();
+function verifierSolde(amount) {
+    return new Promise((resolve,reject)=>{
+
+        if (!amount || amount <= 0) {
+        reject("Veuillez entrer un montant valide !");
+        return ;
+        }
+        if (username.wallet.balance < amount) {
+        reject("Solde insuffisant ! Votre solde est de " + username.wallet.balance + " " + username.wallet.currency);
+        return ;
+        }
+        resolve();
+    });   
 }
 
-function verifierBeneficiaire(beneficiaryName, callback) {
+function verifierBeneficiaire(beneficiaryName) {
+    return new Promise((resolve,reject)=>{
     if (!beneficiaryName || beneficiaryName === "") {
-        alert("Veuillez choisir un beneficiaire !");
+        reject("Veuillez choisir un beneficiaire !");
         return;
     }
     getUserByName(beneficiaryName, function(beneficiaire) {
         if (!beneficiaire) {
-            alert("Beneficiaire introuvable !");
+            reject("Beneficiaire introuvable !");
             return;
         }
-        callback(beneficiaire);
+        resolve(beneficiaire);
     });
+});
 }
 
-function creerTransactions(amount, beneficiaire, callback) {
+function creerTransactions(amount, beneficiaire) {
+    return new Promise((resolve)=>{
     const now   = new Date();
     const day   = now.getDate();
     const month = now.getMonth() + 1;
@@ -152,8 +167,10 @@ function creerTransactions(amount, beneficiaire, callback) {
         sender.wallet.transactions.push(newDebit);
         beneficiaire.wallet.transactions.push(newCredit);
 
-        callback(sender); 
+        resolve(sender); 
     });
+});
+
 }
 
 function updateDashboard(amount, beneficiaire, sender) { 
@@ -174,3 +191,17 @@ function updateDashboard(amount, beneficiaire, sender) {
     Revenue.textContent  = Ct.reduce(function(total, t) { return total + t.amount; }, 0) + " " + username.wallet.currency;
 
 }
+
+username.wallet.transactions.forEach((tr) => {
+    const transactionEl = document.createElement("div");
+    transactionEl.className = "transaction-item";
+    const amountColor = tr.type === "credit" ? "color: green;" : "color: red;";
+    transactionEl.innerHTML = `
+        <span class="date"><strong>${tr.date}</strong></span>
+        <span class="from">${tr.from}</span>
+        <span class="to">${tr.to}</span>
+        <span class="type ${tr.type}"><strong>${tr.type}</strong></span>
+        <span class="amount" style="${amountColor}">${tr.amount}</span>
+    `;
+    recentTransactionsList.appendChild(transactionEl);
+})
